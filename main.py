@@ -6,15 +6,15 @@ import json
 
 app = Flask(__name__)
 
-# TODO: create a command to return the country based on the latitude and longitude inputted
-
 @app.route('/')
 def default():
     return "<p>Hello world!</p>"
 
+# helper function for feeling_lucky()
 def get_gemini_response_text(json_obj):
     return json_obj['candidates'][0]['content']['parts'][0]['text']
 
+# was testing for retrieving image URLs of the cities
 @app.route('/api/test')
 def test():
     # load environment variables from .env file
@@ -36,6 +36,12 @@ def test():
 
     # return the city urls as a response
     return jsonify(city_image_urls)
+
+@app.route('/api/city_image')
+def city_image():
+    # REQUIRED argument!
+    city_name = request.args.get('city_name')
+    return jsonify(get_image_url(city_name, 1))
 
 # generates a list of cities to look at if they are interested
 @app.route('/api/lucky')
