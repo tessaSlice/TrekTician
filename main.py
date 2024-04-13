@@ -8,11 +8,13 @@ app = Flask(__name__)
 
 # TODO: create a command to return the country based on the latitude and longitude inputted
 
+@app.route('/')
+def default():
+    return "<p>Hello world!</p>"
+
 def get_gemini_response_text(json_obj):
     return json_obj['candidates'][0]['content']['parts'][0]['text']
     # print(json_obj)
-
-
 
 @app.route('/api/test')
 def test():
@@ -50,44 +52,18 @@ def feeling_lucky():
     headers = {'Content-Type' : 'application/json'}
 
     # first generate a list of cities
-    simplified_city_names_prompt = "You are an amazing and well known traveling advisor. Generate a list of tourist CITIES in " + country + " that are " + travel_style
-
-    # extract the cities
-    extract_prompt = "Extract out these cities into a list."
-
-    # add the description
-    description_prompt = "Add a one sentence desciption to the following list of cities and add desciption for each of them for travelers"
-
-    # TODO: get the images - make the test function modular to handle an input of dictionary
-
+    generate_cities_and_description_prompt = "You are an amazing and well known traveling advisor. Generate a list of tourist CITIES in " + country + " that are " + travel_style
+    generate_cities_and_description_prompt += ". Also, make sure to add a one sentence desciption to the following list of cities and add desciption for each of them for travelers"
     # ask it to format the json
-    format_json_prompt = "Please provide a response in a structured JSON format that matches the following model: [{city: city name, description: desciption, image: image_url}]"
+    generate_cities_and_description_prompt += "Please provide a response in a structured JSON format that matches the following model: [{city: city name, description: desciption}]"
 
     # REST API already handles a chat history through providing multiple parts
     data = {
         'contents': [
             {
                 "role": "user",
-            'parts': [{
-                "text": simplified_city_names_prompt,
-            }]
-            },
-            {
-                "role": "user",
-                "parts": [{
-                    "text": extract_prompt,
-                }]
-            },
-            {
-                "role": "user",
-                "parts": [{
-                    "text": description_prompt
-                }]
-            },
-            {
-                "role": "user",
-                "parts": [{
-                    "text" : format_json_prompt
+                'parts': [{
+                    "text": generate_cities_and_description_prompt,
                 }]
             }
         ],
@@ -96,11 +72,7 @@ def feeling_lucky():
         }
     }
 
-    print(type(headers))
-    print(type(data))
-
     response = requests.post(url, headers=headers, json=data)
-    #print(json_text)
     json_text = get_gemini_response_text(response.json())
 
     return jsonify(json_text)
