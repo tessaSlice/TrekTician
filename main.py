@@ -9,13 +9,12 @@ app = Flask(__name__)
 # TODO: create a command to return the country based on the latitude and longitude inputted
 
 def get_gemini_response_text(json_obj):
-    return json_obj.json()['candidates'][0]['content']['parts'][0]['text']
+    return json_obj['candidates'][0]['content']['parts'][0]['text']
+    # print(json_obj)
 
-@app.route('/')
-def default_output():
-    return "<p>Hello world!</p>"
 
-@app.route('/test')
+
+@app.route('/api/test')
 def test():
     # load environment variables from .env file
     # load_dotenv()
@@ -38,7 +37,7 @@ def test():
     return jsonify(city_image_urls)
 
 # generates a list of cities to look at if they are interested
-@app.route('/lucky')
+@app.route('/api/lucky')
 def feeling_lucky():
     # these are REQUIRED parameters!
     travel_style = request.args.get('travel_style')
@@ -88,7 +87,7 @@ def feeling_lucky():
             {
                 "role": "user",
                 "parts": [{
-                    format_json_prompt
+                    "text" : format_json_prompt
                 }]
             }
         ],
@@ -97,8 +96,11 @@ def feeling_lucky():
         }
     }
 
+    print(type(headers))
+    print(type(data))
+
     response = requests.post(url, headers=headers, json=data)
-    print(json_text)
+    #print(json_text)
     json_text = get_gemini_response_text(response.json())
 
     return jsonify(json_text)
