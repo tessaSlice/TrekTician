@@ -30,3 +30,20 @@ To run this repository locally on your machine with VSCode, follow the instructi
 3. Inside the terminal, there should now be a `(.venv)` on the very left side of every command. You are now in the virtual environment!
 
 If you're having any issues with setting up a virtual environment, consult this resource: https://code.visualstudio.com/docs/python/environments
+
+## Dependencies
+
+### Flask
+
+We used Flask to allow the front-end interact with the back-end. To install it, just use the following command:
+```python
+pip install flask
+```
+
+### .env variables
+We used `dotenv` and `os` libraries to safely store and access virtual environment variables. 
+
+You can install it through the terminal like so:
+```python
+pip install python-dotenv
+```
