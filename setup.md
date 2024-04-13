@@ -33,6 +33,8 @@ If you're having any issues with setting up a virtual environment, consult this 
 
 ## Dependencies
 
+We used a variety of dependencies when constructing our project.
+
 ### Flask
 
 We used Flask to allow the front-end interact with the back-end. To install it, just use the following command:
@@ -46,4 +48,12 @@ We used `dotenv` and `os` libraries to safely store and access virtual environme
 You can install it through the terminal like so:
 ```python
 pip install python-dotenv
+```
+
+### requests
+
+We used the `requests` library to make API calls to many different APIs, from Google's GEMINI API to Google's Custom Engine Search API. 
+
+```python
+python -m pip install requests
 ```
