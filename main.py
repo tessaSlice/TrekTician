@@ -14,7 +14,6 @@ def default():
 
 def get_gemini_response_text(json_obj):
     return json_obj['candidates'][0]['content']['parts'][0]['text']
-    # print(json_obj)
 
 @app.route('/api/test')
 def test():
@@ -51,7 +50,7 @@ def feeling_lucky():
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key={gemini_api_key}"
     headers = {'Content-Type' : 'application/json'}
 
-    # first generate a list of cities
+    # create the prompt
     generate_cities_and_description_prompt = "You are an amazing and well known traveling advisor. Generate a list of tourist CITIES in " + country + " that are " + travel_style
     generate_cities_and_description_prompt += ". Also, make sure to add a one sentence desciption to the following list of cities and add desciption for each of them for travelers"
     # ask it to format the json
@@ -75,7 +74,15 @@ def feeling_lucky():
     response = requests.post(url, headers=headers, json=data)
     json_text = get_gemini_response_text(response.json())
 
-    return jsonify(json_text)
+    # now populate the google images
+    cities = json.loads(json_text)
+    for city in cities:
+        city_name = city['city']
+        city_image_url = get_image_url(city_name, 1)
+        # add the city image url to the dictionary
+        city['image_url'] = city_image_url
+        
+    return jsonify(cities)
 
 def get_google_images(query, api_key, cse_id, num_images=10):
     url = f"https://www.googleapis.com/customsearch/v1?"
