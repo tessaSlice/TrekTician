@@ -1,12 +1,22 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 import os
 import requests
+import json
 
 app = Flask(__name__)
 
-@app.route("/")
+# TODO: create a command to return the country based on the latitude and longitude inputted
+
+def get_gemini_response_text(json_obj):
+    return json_obj.json()['candidates'][0]['content']['parts'][0]['text']
+
+@app.route('/')
 def default_output():
+    return "<p>Hello world!</p>"
+
+@app.route('/test')
+def test():
     # load environment variables from .env file
     # load_dotenv()
     # access the API key from environment variables
@@ -26,6 +36,72 @@ def default_output():
 
     # return the city urls as a response
     return jsonify(city_image_urls)
+
+# generates a list of cities to look at if they are interested
+@app.route('/lucky')
+def feeling_lucky():
+    # these are REQUIRED parameters!
+    travel_style = request.args.get('travel_style')
+    country = request.args.get('country')
+
+    # get the GEMINI API key
+    gemini_api_key = os.getenv('GOOGLE_API_KEY')
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key={gemini_api_key}"
+    headers = {'Content-Type' : 'application/json'}
+
+    # first generate a list of cities
+    simplified_city_names_prompt = "You are an amazing and well known traveling advisor. Generate a list of tourist CITIES in " + country + " that are " + travel_style
+
+    # extract the cities
+    extract_prompt = "Extract out these cities into a list."
+
+    # add the description
+    description_prompt = "Add a one sentence desciption to the following list of cities and add desciption for each of them for travelers"
+
+    # TODO: get the images - make the test function modular to handle an input of dictionary
+
+    # ask it to format the json
+    format_json_prompt = "Please provide a response in a structured JSON format that matches the following model: [{city: city name, description: desciption, image: image_url}]"
+
+    # REST API already handles a chat history through providing multiple parts
+    data = {
+        'contents': [
+            {
+                "role": "user",
+            'parts': [{
+                "text": simplified_city_names_prompt,
+            }]
+            },
+            {
+                "role": "user",
+                "parts": [{
+                    "text": extract_prompt,
+                }]
+            },
+            {
+                "role": "user",
+                "parts": [{
+                    "text": description_prompt
+                }]
+            },
+            {
+                "role": "user",
+                "parts": [{
+                    format_json_prompt
+                }]
+            }
+        ],
+        "generationConfig": {
+            "response_mime_type": "application/json",
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    print(json_text)
+    json_text = get_gemini_response_text(response.json())
+
+    return jsonify(json_text)
 
 def get_google_images(query, api_key, cse_id, num_images=10):
     url = f"https://www.googleapis.com/customsearch/v1?"
