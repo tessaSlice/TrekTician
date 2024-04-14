@@ -6,16 +6,15 @@ import json
 
 app = Flask(__name__)
 
-# TODO: create a command to return the country based on the latitude and longitude inputted
-
 @app.route('/')
 def default():
     return "<p>Hello world!</p>"
 
+# helper function for feeling_lucky()
 def get_gemini_response_text(json_obj):
     return json_obj['candidates'][0]['content']['parts'][0]['text']
-    # print(json_obj)
 
+# was testing for retrieving image URLs of the cities
 @app.route('/api/test')
 def test():
     # load environment variables from .env file
@@ -38,6 +37,12 @@ def test():
     # return the city urls as a response
     return jsonify(city_image_urls)
 
+@app.route('/api/city_image')
+def city_image():
+    # REQUIRED argument!
+    city_name = request.args.get('city_name')
+    return jsonify(get_image_url(city_name, 1))
+
 # generates a list of cities to look at if they are interested
 @app.route('/api/lucky')
 def feeling_lucky():
@@ -51,7 +56,7 @@ def feeling_lucky():
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key={gemini_api_key}"
     headers = {'Content-Type' : 'application/json'}
 
-    # first generate a list of cities
+    # create the prompt
     generate_cities_and_description_prompt = "You are an amazing and well known traveling advisor. Generate a list of tourist CITIES in " + country + " that are " + travel_style
     generate_cities_and_description_prompt += ". Also, make sure to add a one sentence desciption to the following list of cities and add desciption for each of them for travelers"
     # ask it to format the json
@@ -75,7 +80,15 @@ def feeling_lucky():
     response = requests.post(url, headers=headers, json=data)
     json_text = get_gemini_response_text(response.json())
 
-    return jsonify(json_text)
+    # now populate the google images
+    cities = json.loads(json_text)
+    for city in cities:
+        city_name = city['city']
+        city_image_url = get_image_url(city_name, 1)
+        # add the city image url to the dictionary
+        city['image_url'] = city_image_url
+        
+    return jsonify(cities)
 
 def get_google_images(query, api_key, cse_id, num_images=10):
     url = f"https://www.googleapis.com/customsearch/v1?"
