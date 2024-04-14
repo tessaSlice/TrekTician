@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from dotenv import load_dotenv
 import os
 import requests
@@ -189,13 +189,13 @@ def feeling_lucky():
     # now populate the google images
     cities = json.loads(json_text)
     for city in cities:
-        city_name = city['city']
+        city_name = city["city"]
         city_image_url = get_image_url(city_name, 1)
         # add the city image url to the dictionary
-        city['image_url'] = city_image_url
+        city["image_url"] = city_image_url
     
     # cities should be a text, seems like jsonify doesn't support dicts
-    cities_text = json.dumps(cities)
+    cities_text = json.dumps(cities, ensure_ascii=False)
 
     return jsonify(cities_text)
 
