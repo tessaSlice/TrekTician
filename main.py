@@ -10,6 +10,113 @@ app = Flask(__name__)
 def default():
     return "<p>Hello world!</p>"
 
+@app.route('/api/generate_itinerary')
+def generate_itinerary():
+    # these are REQUIRED parameters!
+    time_of_visit = request.args.get('time_of_visit')
+    list_to_visit = request.args.get('list_to_visit')
+
+    # get the GEMINI API key
+    gemini_api_key = os.getenv('GOOGLE_API_KEY')
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key={gemini_api_key}"
+    headers = {'Content-Type' : 'application/json'}
+    
+    # modify the prompt here!
+    prompt = "generate an travel itinerary that includes all of the following list " + list_to_visit + "in " + time_of_visit +"days"
+    # ask it to format the json
+    prompt += "Please provide a response in a structured JSON format that matches the following model: [{Day: day number, morning: [morning activities (do not include optional)], afternoon: [afternoon activities (do not include optional)], evening: [evening activities (do not include optional)]}]"
+
+    data = {
+        'contents': [
+            {
+                "role": "user",
+                'parts': [{
+                    "text": prompt,
+                }]
+            }
+        ],
+        "generationConfig": {
+            "response_mime_type": "application/json",
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    json_text = get_gemini_response_text(response.json())
+
+    return jsonify(json_text)
+
+@app.route('/api/transportation')
+def get_transportation():
+    # list required parameters
+    to_city = request.args.get('to_city')
+    from_city = request.args.get('from_city')
+    transportation_method = request.args.get('transportation_method')
+    time_of_visit = request.args.get('time_of_visit')
+
+    # get the GEMINI API key
+    gemini_api_key = os.getenv('GOOGLE_API_KEY')
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key={gemini_api_key}"
+    headers = {'Content-Type' : 'application/json'}
+
+
+    prompt = "provide ONLY a number for ticket price for round-trip " + transportation_method + "from" + from_city + " to " + to_city + " during "+ time_of_visit
+    prompt += "Please provide a response in a structured JSON format that matches the following model: [ budget: budget ]"
+    
+    data = {
+        'contents': [
+            {
+                "role": "user",
+                'parts': [{
+                    "text": prompt,
+                }]
+            }
+        ],
+        "generationConfig": {
+            "response_mime_type": "application/json",
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    json_text = get_gemini_response_text(response.json())
+
+    return jsonify(json_text)
+
+@app.route('/api/daily_transportation')
+def get_daily_transportation():
+    # list required parameters following this example
+    city_name = request.args.get('city_name')
+
+    # get the GEMINI API key
+    gemini_api_key = os.getenv('GOOGLE_API_KEY')
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key={gemini_api_key}"
+    headers = {'Content-Type' : 'application/json'}
+
+
+    prompt = "Estimate A singular number of budget of ground transportation traveling in " + city_name + ". Please provide a response in a structured JSON format that matches the following model: [ tranportation price: transportation price ]"
+    
+    data = {
+        'contents': [
+            {
+                "role": "user",
+                'parts': [{
+                    "text": prompt,
+                }]
+            }
+        ],
+        "generationConfig": {
+            "response_mime_type": "application/json",
+        }
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    json_text = get_gemini_response_text(response.json())
+
+    return jsonify(json_text)
+    
+
 # helper function for feeling_lucky()
 def get_gemini_response_text(json_obj):
     return json_obj['candidates'][0]['content']['parts'][0]['text']
@@ -62,7 +169,6 @@ def feeling_lucky():
     # ask it to format the json
     generate_cities_and_description_prompt += "Please provide a response in a structured JSON format that matches the following model: [{city: city name, description: desciption}]"
 
-    # REST API already handles a chat history through providing multiple parts
     data = {
         'contents': [
             {
@@ -87,8 +193,11 @@ def feeling_lucky():
         city_image_url = get_image_url(city_name, 1)
         # add the city image url to the dictionary
         city['image_url'] = city_image_url
-        
-    return jsonify(cities)
+    
+    # cities should be a text, seems like jsonify doesn't support dicts
+    cities_text = str(cities)
+
+    return jsonify(cities_text)
 
 def get_google_images(query, api_key, cse_id, num_images=10):
     url = f"https://www.googleapis.com/customsearch/v1?"
