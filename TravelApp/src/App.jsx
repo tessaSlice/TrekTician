@@ -17,6 +17,8 @@ import { BrowserRouter as Router } from 'react-router-dom';
 
 import Silder from "react-slick";
 
+import {Link} from "react-router-dom"
+
 
 // ---------------------------
 
@@ -39,6 +41,32 @@ function App() {
 
   const [cityData, setCityData] = useState(null);
   const [descripData, setDescripData] = useState(null);
+
+  const [currentData, setCurrentData] = useState([])
+  const [index, setIndex] = useState(0)
+
+  const rand_countries = [  'Argentina',
+  'Brazil',
+  'Canada',
+  'Denmark',
+  'Egypt',
+  'France',
+  'Germany',
+  'India',
+  'Japan',
+  'Kenya']
+
+  const chooseRandCountry = () => {
+    const countryName = rand_countries[Math.floor(Math.random() * rand_countries.length)]
+    setClickedCountry(countryName)
+  }
+
+  const handleNext = () => {
+    const temp = (index+1) % currentData.length
+    setIndex(temp)
+    setCityData(currentData[temp]['city'])
+    setDescripData(currentData[temp]['description'])
+  }
 
   const data = [
     {
@@ -82,50 +110,63 @@ function App() {
 
   };
 
-  const handleGoClick = () => {
-    async function fetcher(){
-      const fetchReq = await fetch(`/api/lucky?country=${clickedCountry}&travel_style=${"fly"}`)
-      const response = await fetchReq.json()
-      const resp = JSON.parse(response)
-      // console.log(Object.keys(response).length)
-      console.log(typeof(resp))
-      console.log(resp)
-      // navigate("/InfoPage")
-      console.log(resp[0]['city'])
-      setCityData(resp[0]['city']);
-      setDescripData(resp[0]['description']);
-      // navigate("/InfoPage")
-      // console.log("Navigated to InfoPage");
-    }
+  // const handleGoClick = () => {
+  //   async function fetcher(){
+  //     const fetchReq = await fetch(`/api/lucky?country=${clickedCountry}&travel_style=${"fly"}`)
+  //     const response = await fetchReq.json()
+  //     const resp = JSON.parse(response)
+  //     // console.log(Object.keys(response).length)
+  //     console.log(typeof(resp))
+  //     console.log(resp)
+  //     // navigate("/InfoPage")
 
-    fetcher()
-    // goToNewPage()
+  //     // const  = resp
+  //     setCurrentData(resp)
+
+  //     console.log(resp[0]['city'])
+  //     setCityData(resp[0]['city']);
+  //     setDescripData(resp[0]['description']);
+
+
+  //     // navigate("/InfoPage")
+  //     // console.log("Navigated to InfoPage");
+  //   }
+
+  //   fetcher()
+  //   // goToNewPage()
     
-  }
+  // }
 
+  console.log(currentData)
 
   return (
     <>
       <div>
         <img src="/images/transparent.png" className="logo trek" alt=""/>
       </div>
-      <h1>welcome.</h1>
+      <h1>welcome, traveler!</h1>
       <SimpleGlobe onMarkerClick={handleMarkerClick} />
       <div className="card">
         
         <p>Pick the country you would like to travel to next.</p>
-        <button onClick={() => setCount((count) => count + 1)}>
+        <button onClick={chooseRandCountry}>
           Or...I'm Feeling Lucky? 🫣
+          
         </button>
         <p>Want to plan a trip in... {clickedCountry}?</p>
 
-        {clickedCountry && (<button onClick={handleGoClick}>
+        <Link to='/infoPage' state= {{clickedCountry: clickedCountry}}>
+        {clickedCountry && (<button>
           Let's go!
         </button>)}
+        </Link>
 
         <h1>{cityData}</h1>
         <h2>{descripData}</h2>   
-
+        
+        {currentData.length!==0 && (<button onClick={handleNext}> 
+          Next
+        </button>)}
 
       </div>
       
