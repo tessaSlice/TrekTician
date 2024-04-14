@@ -195,7 +195,7 @@ def feeling_lucky():
         city['image_url'] = city_image_url
     
     # cities should be a text, seems like jsonify doesn't support dicts
-    cities_text = str(cities)
+    cities_text = json.dumps(cities)
 
     return jsonify(cities_text)
 
