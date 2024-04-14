@@ -63,3 +63,5 @@ python -m pip install requests
 TBD: List out instructions for running the React framework. 
 
 This is the library we used to create the globe: https://github.com/vasturiano/react-globe.gl?tab=readme-ov-file#globe-layer
+
+This link may be helpful when installing: https://learn.microsoft.com/en-us/windows/dev-environment/javascript/react-on-wsl
